@@ -17,7 +17,29 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
       await client.connect();
-      console.log('bd connected');
+      const candidatesCollection = client.db("DeskalaTask").collection("candidates")
+
+      // store candidates in database and issue jwt token
+      app.put('/candidates/:email', async(req, res)=>{
+        const email = req.params.email;
+        const user = req.body;
+        const filter = {email : email};
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: user,
+        }
+        const candidates = await candidatesCollection.updateOne(filter,updateDoc,options)
+        
+        res.send(candidates)
+      })
+
+      // get all candidates
+      app.get('/candidates', async(req, res)=>{
+        const query = {}
+        const result = await candidatesCollection.find(query).toArray()
+        res.send(result)
+      })
+
 
 
     } finally {
